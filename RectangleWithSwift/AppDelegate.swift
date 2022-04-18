@@ -6,31 +6,46 @@
 //
 
 import UIKit
+import SquarePointOfSaleSDK
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
+	var window: UIWindow?
 
-
+	func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+		// Verify that the response is from the Square app
+		guard SCCAPIResponse.isSquareResponse(url) else {
+			return false
+		}
+		
+		do {
+			// Build a SCCAPIResponse object for error handling and
+			// passing transaction data
+			let response = try SCCAPIResponse(responseURL: url)
+			
+			if let error = response.error {
+				// Handle a failed request.
+				print(error.localizedDescription)
+			} else {
+				// Do something interesting with the response like
+				// adjust inventory or track customer purchases
+				if let viewController = self.window?.rootViewController as? ViewController {
+					viewController.isTenderSuccessful = response.isSuccessResponse
+				}
+			}
+			
+		} catch let error as NSError {
+			// Handle unexpected errors.
+			print(error.localizedDescription)
+		}
+		
+		return true
+	}
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
 		// Override point for customization after application launch.
 		return true
 	}
-
-	// MARK: UISceneSession Lifecycle
-
-	func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
-		// Called when a new scene session is being created.
-		// Use this method to select a configuration to create the new scene with.
-		return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
-	}
-
-	func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
-		// Called when the user discards a scene session.
-		// If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
-		// Use this method to release any resources that were specific to the discarded scenes, as they will not return.
-	}
-
 
 }
 
